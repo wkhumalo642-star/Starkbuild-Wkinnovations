@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StarkBuild Robotics Academy - Standalone Lab Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#1e293b',
+                            950: '#070a13',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styled scrollbars */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+        /* Custom selection */
+        ::selection {
+            background: #4f46e5;
+            color: #ffffff;
+        }
+        /* Touch and drag optimizations */
+        .touch-action-none {
+            touch-action: none;
+        }
+        /* Glowing effects */
+        .glow-indigo {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+        }
+        /* Mobile slider enhancements */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased font-sans selection:bg-indigo-600 selection:text-slate-100">
+
+    <!-- 1. BRAND NAVIGATION HEADER -->
+    <header class="bg-slate-950/90 border-b border-slate-900 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-[0_0_15px_rgba(79,70,229,0.4)]">
+                    <span class="text-slate-100 font-black tracking-tighter">S</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-lg font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-indigo-300">
+                            STARKBUILD
+                        </span>
+                        <span class="text-[8px] font-mono font-bold text-indigo-400 border border-indigo-800 bg-indigo-950/30 px-1.5 py-0.5 rounded">
+                            MOBILE_PRO
+                        </span>
+                    </div>
+                    <p class="text-[9px] font-mono tracking-wider text-slate-500 font-bold">
+                        POWERED BY <span class="text-indigo-400">WK INNOVATIONS</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGATOR (TOUCH TARGET OPTIMIZED >= 44PX) -->
+            <nav class="flex justify-center bg-slate-900 border border-slate-800 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-thin">
+                <button onclick="switchTab('lessons')" id="tab-lessons" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Lessons
+                </button>
+                <button onclick="switchTab('simulator')" id="tab-simulator" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all">
+                    <i data-lucide="cpu" class="w-4 h-4"></i> 3D Lab
+                </button>
+                <button onclick="switchTab('quizzes')" id="tab-quizzes" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all">
+                    <i data-lucide="award" class="w-4 h-4"></i> Quizzes
+                </button>
+                <button onclick="switchTab('ai')" id="tab-ai" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> AI Tutor
+                </button>
+            </nav>
+
+            <div class="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span>SYSTEM: <span class="text-emerald-400 font-bold">READY</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CANVAS CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+        
+        <!-- SECTION 1: LESSONS CURRICULUM -->
+        <section id="panel-lessons" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Sidebar list (Left) -->
+            <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-3xl p-4 h-fit space-y-3">
+                <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider px-1">Curriculum Lessons</h3>
+                <div class="space-y-2" id="lessons-list">
+                    <!-- Loaded dynamically in JS -->
+                </div>
+            </div>
+
+            <!-- Active Lesson View (Right) -->
+            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-3xl p-5 flex flex-col space-y-5" id="active-lesson-container">
+                <!-- Header details -->
+                <div class="flex flex-wrap justify-between items-start gap-2 border-b border-slate-800 pb-4">
+                    <div class="space-y-1">
+                        <span id="lesson-meta" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-indigo-950/40 border border-indigo-800 text-indigo-400 font-bold uppercase"></span>
+                        <h2 id="lesson-title" class="text-xl font-bold text-slate-100"></h2>
+                        <p id="lesson-desc" class="text-xs text-slate-400 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Learning Objective & BOM -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950/40 border border-slate-850 p-4 rounded-2xl space-y-1.5">
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-3.5 h-3.5"></i> LEARNING OBJECTIVE
+                        </h4>
+                        <p id="lesson-objective" class="text-xs text-slate-300 leading-relaxed"></p>
+                    </div>
+                    <div class="bg-slate-950/40 border border-slate-850 p-4 rounded-2xl space-y-1.5">
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="list-checks" class="w-3.5 h-3.5"></i> HARDWARE BOM
+                        </h4>
+                        <ul id="lesson-bom" class="text-xs text-slate-300 space-y-1 pl-1 list-none"></ul>
+                    </div>
+                </div>
+
+                <!-- Interactive Step Progress -->
+                <div class="bg-slate-950/50 border border-slate-850 rounded-2xl p-4.5 space-y-3">
+                    <div class="flex justify-between items-center text-xs font-mono">
+                        <span class="text-slate-400">INSTRUCTION STEP WORKFLOW:</span>
+                        <span id="step-counter" class="text-indigo-400 font-bold">Step 1 of 5</span>
+                    </div>
+                    <!-- Indicator Bar -->
+                    <div class="w-full bg-slate-850 h-1.5 rounded-full overflow-hidden">
+                        <div id="step-progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 20%;"></div>
+                    </div>
+                    <p id="step-text" class="text-xs sm:text-sm text-slate-200 leading-relaxed h-12 flex items-center"></p>
+                    <div class="flex justify-between items-center pt-2">
+                        <button onclick="prevStep()" id="btn-prev-step" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-[10px] font-mono text-slate-300 rounded-lg transition disabled:opacity-40">
+                            &lt; PREVIOUS STEP
+                        </button>
+                        <button onclick="nextStep()" id="btn-next-step" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-[10px] font-mono text-slate-100 rounded-lg transition disabled:opacity-40">
+                            NEXT STEP &gt;
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live C++ Code IDE -->
+                <div class="border border-slate-800 rounded-2xl overflow-hidden flex flex-col bg-slate-950">
+                    <div class="bg-slate-950 border-b border-slate-850 px-4 py-2 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="file-code" class="w-3.5 h-3.5 text-indigo-400"></i>
+                            sketch.ino
+                        </span>
+                        <span class="text-slate-500">Arduino Uno Board Standard C++</span>
+                    </div>
+                    <pre class="p-4 overflow-x-auto text-xs font-mono leading-relaxed bg-[#0b0e14] scrollbar-thin text-slate-300 select-all"><code id="code-editor-area"></code></pre>
+                    <div class="bg-slate-950 border-t border-slate-850 p-3 flex justify-end">
+                        <button onclick="compileAndRun()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-mono font-bold text-slate-100 rounded-xl cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5 transition-all">
+                            <i data-lucide="play" class="w-4 h-4"></i> COMPILE & RUN ON SIMULATOR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: 3D LAB WORKBENCH -->
+        <section id="panel-simulator" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 3D Canvas Viewport (Left) -->
+            <div class="lg:col-span-8 flex flex-col space-y-4">
+                <div class="relative bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl h-[400px] sm:h-[480px]">
+                    <div id="three-canvas-container" class="w-full h-full touch-action-none"></div>
+
+                    <!-- Overlay instructions -->
+                    <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-slate-800 rounded-xl p-3 text-[10px] font-mono text-indigo-400 pointer-events-none space-y-0.5 shadow-lg">
+                        <p class="font-bold flex items-center gap-1.5 text-slate-100">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                            STARKCORE_3D_BENCH
+                        </p>
+                        <p class="text-slate-400">⚡ Swipe/Drag on lab desk to rotate</p>
+                    </div>
+
+                    <!-- Live Telemetry Monitor (Floating) -->
+                    <div class="absolute bottom-4 right-4 bg-slate-950/90 border border-indigo-500/20 rounded-xl p-3 font-mono text-[10px] sm:text-xs space-y-1 shadow-2xl min-w-[150px] pointer-events-auto">
+                        <div class="text-[9px] text-slate-400 uppercase tracking-wider border-b border-slate-850 pb-1 font-bold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+                            Telemetry HUD
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>PIN 13 LED:</span>
+                            <span id="telemetry-led" class="text-slate-500 font-bold">0.0V (LOW)</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>SERVO ANG:</span>
+                            <span id="telemetry-servo" class="text-amber-500 font-bold">90°</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>US ECHO:</span>
+                            <span id="telemetry-sonic" class="text-indigo-400 font-bold">80 cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Controls Dock -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 flex items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">Simulation controls</h4>
+                        <p class="text-[10px] text-slate-400">Cycle virtual voltage parameters on virtual microcontroller</p>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="toggleSimulation()" id="btn-toggle-sim" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-slate-100 font-bold text-xs rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+                            <i data-lucide="play" class="w-4 h-4" id="icon-sim-play"></i> <span id="text-sim-play">Start Simulator</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="px-4 py-2.5 bg-slate-800 border border-slate-750 hover:bg-slate-750 text-slate-200 font-bold text-xs rounded-xl cursor-pointer transition flex items-center gap-1.5">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Work Bench Overrides (Right) -->
+            <div class="lg:col-span-4 flex flex-col space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-5">
+                    <h3 class="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> LABORATORY OVERRIDES
+                    </h3>
+
+                    <!-- Obstacle Range Slider -->
+                    <div class="space-y-2 bg-slate-950/40 p-4 rounded-2xl border border-slate-850">
+                        <div class="flex justify-between items-center text-xs font-mono">
+                            <span class="text-slate-400">Ultrasonic Target Obstacle:</span>
+                            <span id="label-us-slider" class="text-indigo-400 font-bold">80 cm</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="5"
+                            max="200"
+                            value="80"
+                            id="slider-ultrasonic"
+                            oninput="updateUltrasonicSlider(this.value)"
+                            class="w-full bg-slate-850 rounded-lg cursor-pointer h-1.5"
+                        />
+                        <p class="text-[10px] text-slate-500 italic">Move obstacle closer/further. Microcontroller feedback responds instantly!</p>
+                    </div>
+
+                    <!-- Manual Servo Angle Slider -->
+                    <div class="space-y-2 bg-slate-950/40 p-4 rounded-2xl border border-slate-850">
+                        <div class="flex justify-between items-center text-xs font-mono">
+                            <span class="text-slate-400">Manual Servo Angle:</span>
+                            <span id="label-servo-slider" class="text-amber-500 font-bold">90°</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="180"
+                            value="90"
+                            id="slider-servo"
+                            oninput="updateServoSlider(this.value)"
+                            class="w-full bg-slate-850 rounded-lg cursor-pointer h-1.5"
+                        />
+                        <p class="text-[10px] text-slate-500 italic" id="servo-slider-help">Calibrate micro-servo gear shaft. Disabled during automated loops.</p>
+                    </div>
+                </div>
+
+                <!-- Microcontroller Serial Port Terminal (Bottom Right) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex-1 flex flex-col space-y-3 min-h-[220px]">
+                    <h3 class="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Serial Monitor Terminal
+                    </h3>
+                    <div id="serial-terminal" class="flex-1 bg-slate-950 rounded-2xl p-4.5 font-mono text-[10px] sm:text-xs text-emerald-400 space-y-1.5 overflow-y-auto max-h-[200px] h-[180px] scrollbar-thin">
+                        <div class="text-slate-600 italic">No connection established. Click "Start Simulator" to open Serial stream...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: QUIZZES MODULE -->
+        <section id="panel-quizzes" class="hidden max-w-2xl mx-auto space-y-6">
+            <!-- Category Selection View -->
+            <div id="quiz-deck-selection" class="space-y-4">
+                <div class="text-center space-y-1.5 py-4">
+                    <h2 class="text-2xl font-black text-slate-100">STARK ROBOTICS EXAM CENTER</h2>
+                    <p class="text-xs text-slate-400">Test your mastery of hardware architecture, digital outputs, acoustics, and actuators.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="quiz-categories-list">
+                    <!-- Loaded dynamically in JS -->
+                </div>
+            </div>
+
+            <!-- Active Quiz View -->
+            <div id="quiz-active-viewport" class="hidden bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+                <!-- Question count bar -->
+                <div class="flex justify-between items-center text-xs font-mono text-slate-400">
+                    <span id="quiz-title-badge" class="uppercase"></span>
+                    <span id="quiz-step-badge">Question 1 of 3</span>
+                </div>
+
+                <!-- Question Prompt Box -->
+                <div class="bg-slate-950 border border-slate-850 rounded-2xl p-5 relative overflow-hidden">
+                    <h3 id="quiz-question-text" class="text-sm sm:text-base font-bold text-slate-100 leading-relaxed"></h3>
+                </div>
+
+                <!-- Interactive Multi-choice options (touch screen optimized) -->
+                <div class="grid grid-cols-1 gap-3" id="quiz-options-grid">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="submitQuizAnswer()" id="btn-quiz-action" class="w-full py-3.5 bg-indigo-600 text-slate-100 font-bold text-xs rounded-2xl shadow-[0_0_15px_rgba(79,70,229,0.3)] transition-all cursor-pointer disabled:opacity-40" disabled>
+                    Submit Answer
+                </button>
+
+                <!-- Explanation Block (Initially hidden) -->
+                <div id="quiz-explanation-block" class="hidden bg-slate-950/80 border border-slate-850 rounded-2xl p-4 space-y-1">
+                    <div class="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">EXPLANATION:</div>
+                    <p id="quiz-explanation-text" class="text-xs text-slate-300 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Quiz Results Scorecard -->
+            <div id="quiz-scorecard-viewport" class="hidden bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-6">
+                <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-500">
+                    <i data-lucide="award" class="w-10 h-10"></i>
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-xl font-bold text-slate-100">Exam Cycle Complete!</h2>
+                    <p class="text-xs text-slate-400">Your score has been compiled and logged in your academy ledger.</p>
+                </div>
+
+                <!-- Accuracy statistics -->
+                <div class="bg-slate-950/60 rounded-2xl p-5 border border-slate-850 max-w-sm mx-auto flex justify-around items-center font-mono">
+                    <div>
+                        <div class="text-[9px] text-slate-500 uppercase font-bold">CORRECT ANSWERS</div>
+                        <div id="scorecard-correct-text" class="text-2xl font-black text-emerald-400">0 / 3</div>
+                    </div>
+                    <div class="w-px h-10 bg-slate-850" />
+                    <div>
+                        <div class="text-[9px] text-slate-500 uppercase font-bold">ACCURACY RATE</div>
+                        <div id="scorecard-percent-text" class="text-2xl font-black text-indigo-400">0%</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 max-w-sm mx-auto">
+                    <button onclick="resetQuizState()" class="flex-1 py-3 bg-slate-800 border border-slate-750 hover:bg-slate-750 text-xs font-bold text-slate-200 rounded-xl transition cursor-pointer">
+                        Return to Center
+                    </button>
+                    <button onclick="retakeQuiz()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-slate-100 rounded-xl cursor-pointer shadow-[0_0_15px_rgba(79,70,229,0.3)] transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Retake Exam
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: INTERACTIVE AI TUTOR -->
+        <section id="panel-ai" class="hidden max-w-3xl mx-auto flex flex-col h-[550px] bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+            <!-- Header bar -->
+            <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wide">AI Robotics Master Tutor</h2>
+                        <p class="text-[9px] font-mono text-slate-400">Hardware & Firmware Advisory Instance</p>
+                    </div>
+                </div>
+                <button onclick="clearChatHistory()" class="p-2 text-slate-500 hover:text-slate-300 rounded-lg transition" title="Clear conversation history">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Chat bubbles wrapper -->
+            <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto scrollbar-thin space-y-4 bg-slate-950/30">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Typing indicator -->
+            <div id="typing-indicator" class="hidden px-4 py-2 flex items-center gap-2 text-xs font-mono text-slate-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce delay-100"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce delay-200"></span>
+                <span>Tutor is formulating masterclass response...</span>
+            </div>
+
+            <!-- Quick Topics Selector -->
+            <div class="px-4 py-2.5 bg-slate-950/70 border-t border-slate-850 flex items-center gap-2 overflow-x-auto scrollbar-thin">
+                <span class="text-[9px] font-mono font-bold text-slate-500 uppercase shrink-0">Topics:</span>
+                <button onclick="askQuickQuestion('led-resistor')" class="shrink-0 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-indigo-300 rounded-lg border border-slate-800 transition">
+                    LED resistor math
+                </button>
+                <button onclick="askQuickQuestion('h-bridge')" class="shrink-0 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-indigo-300 rounded-lg border border-slate-800 transition">
+                    H-Bridge Motors
+                </button>
+                <button onclick="askQuickQuestion('ultrasonic-math')" class="shrink-0 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-indigo-300 rounded-lg border border-slate-800 transition">
+                    Ultrasonic math
+                </button>
+                <button onclick="askQuickQuestion('servo-pwm')" class="shrink-0 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-indigo-300 rounded-lg border border-slate-800 transition">
+                    Servo PWM duty-cycle
+                </button>
+                <button onclick="askQuickQuestion('i2c')" class="shrink-0 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-indigo-300 rounded-lg border border-slate-800 transition">
+                    I2C Protocol
+                </button>
+            </div>
+
+            <!-- Keyboard inputs (touch optimized button inputs) -->
+            <form id="chat-form" onsubmit="handleChatSubmit(event)" class="p-3 bg-slate-950 border-t border-slate-850 flex gap-2">
+                <input
+                    type="text"
+                    id="chat-input"
+                    placeholder="Ask about schematics, duty cycles, motor controls..."
+                    class="flex-1 bg-slate-900 text-slate-100 rounded-xl px-4 py-3 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-slate-850"
+                />
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-slate-100 px-5 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)] shrink-0">
+                    <i data-lucide="send" class="w-4 h-4 text-slate-100"></i>
+                </button>
+            </form>
+        </section>
+
+    </main>
+
+    <!-- 3. STATUS FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-900 text-slate-500 py-6 text-center text-xs select-none">
+        <div class="max-w-7xl mx-auto px-4 space-y-1.5">
+            <p class="font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                STARKBUILD ACADEMY // POWERED BY <span class="text-indigo-400">WK INNOVATIONS</span>
+            </p>
+            <p class="text-[9px] text-slate-600">
+                Copyright © 2026 WK Innovations. All Rights Reserved. Fully offline optimized edition for desktop and mobile.
+            </p>
+        </div>
+    </footer>
+
+    <!-- STATE ENGINE & CONTROLLERS (NATIVE LIGHTWEIGHT JAVASCRIPT) -->
+    <script>
+        // Global Application State Model
+        const appState = {
+            activeTab: 'lessons',
+            activeLessonId: 'blink-led',
+            lessonStepIdx: 0,
+            simState: {
+                isPlaying: false,
+                ledOn: false,
+                ledColor: '#ef4444',
+                servoAngle: 90,
+                ultrasonicDistance: 80,
+            },
+            quizState: {
+                selectedCategory: null,
+                currentQuestionIdx: 0,
+                selectedOption: null,
+                isSubmitted: false,
+                score: 0,
+            },
+            chatState: {
+                messages: [
+                    {
+                        role: 'assistant',
+                        text: "Welcome, engineer! I am your offline AI Robotics advisory agent. Tap any topic banner above, or type in a hardware question (e.g. 'How to calculate resistor drop?') to begin debugging."
+                    }
+                ]
+            }
+        };
+
+        // Complete Hardware Lessons Dataset
+        const ROBOTICS_CURRICULUM = [
+            {
+                id: "blink-led",
+                title: "1. LED Luminescence: Digital Outputs",
+                difficulty: "Beginner",
+                estimatedTime: "10 mins",
+                category: "Fundamentals",
+                description: "Learn how to control digital outputs on the Arduino Uno by writing a sketch to blink an onboard or external LED.",
+                objective: "Understand Digital Pins, GPIO outputs, current-limiting resistors, and the standard delay() function in C++.",
+                hardwareList: ["Arduino Uno R3", "Breadboard", "Red LED", "220 Ohm Resistor", "Jumper Wires"],
+                instructions: [
+                    "Connect the GND pin of the Arduino to the negative rail of the breadboard.",
+                    "Place the 220 Ohm resistor from the negative rail to a tie-point row.",
+                    "Connect the shorter leg (Cathode, flat side) of the LED to the resistor row.",
+                    "Connect the longer leg (Anode) of the LED to pin 13 of the Arduino with a jumper wire.",
+                    "Verify the code, compile, and upload to the microcontroller to trigger the blink sequence."
+                ],
+                arduinoCode: `// StarkBuild Robotics Laboratory
+// Lesson 1: Blink LED
+
+const int LED_PIN = 13; // LED connected to digital pin 13
+
+void setup() {
+  // Initialize digital pin 13 as an output.
+  pinMode(LED_PIN, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("System Initialized: StarkBuild LED Sequence.");
+}
+
+void loop() {
+  // Turn the LED on (HIGH voltage level)
+  digitalWrite(LED_PIN, HIGH);
+  Serial.println("LED State: ON");
+  delay(1000); // Wait for 1 second
+  
+  // Turn the LED off (LOW voltage level)
+  digitalWrite(LED_PIN, LOW);
+  Serial.println("LED State: OFF");
+  delay(1000); // Wait for 1 second
+}`,
+                simulationPreset: {
+                    ledColor: '#ef4444',
+                    servoAngle: 90,
+                    ultrasonicDistance: 80,
+                    components: [
+                        { type: "uno", label: "StarkCore Uno R3" },
+                        { type: "breadboard", label: "Breadboard" },
+                        { type: "led", color: "#ef4444" }
+                    ]
+                }
+            },
+            {
+                id: "ultrasonic-radar",
+                title: "2. Ultrasonic Radar: Measuring Space",
+                difficulty: "Intermediate",
+                estimatedTime: "15 mins",
+                category: "Sensors",
+                description: "Equip your robot with vision! Learn how to use the HC-SR04 ultrasonic range sensor to calculate distances using high-frequency sound waves.",
+                objective: "Understand trigger and echo pulses, velocity of sound calculations, and displaying telemetry via the Serial Monitor.",
+                hardwareList: ["Arduino Uno", "HC-SR04 Ultrasonic Sensor", "Jumper Wires", "Breadboard"],
+                instructions: [
+                    "Connect the VCC pin of the Ultrasonic sensor to 5V on the Arduino.",
+                    "Connect the GND pin to Ground.",
+                    "Connect the Trig (Trigger) pin to Digital Pin 9.",
+                    "Connect the Echo pin to Digital Pin 8.",
+                    "Open the Serial Monitor to observe live distance tracking. Move the obstacle in the simulator to see numbers change!"
+                ],
+                arduinoCode: `// StarkBuild Robotics Laboratory
+// Lesson 2: HC-SR04 Ultrasonic Range Sensor
+
+const int TRIG_PIN = 9;  // Trigger pin connected to Pin 9
+const int ECHO_PIN = 8;  // Echo pin connected to Pin 8
+
+long duration;
+int distance;
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT); // Sets the TRIG_PIN as an Output
+  pinMode(ECHO_PIN, INPUT);  // Sets the ECHO_PIN as an Input
+  Serial.begin(9600);        // Starts the serial communication
+  Serial.println("HC-SR04 Active. Commencing spatial scans...");
+}
+
+void loop() {
+  // Clear the TRIG_PIN
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  
+  // Set the TRIG_PIN on HIGH state for 10 microseconds
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  // Read the ECHO_PIN, returns the sound wave travel time in microseconds
+  duration = pulseIn(ECHO_PIN, HIGH);
+  
+  // Calculating the distance (Speed of sound is 340m/s or 0.034 cm/us)
+  // Distance = (Time * Speed) / 2 (accounting for round trip)
+  distance = duration * 0.034 / 2;
+  
+  // Print the distance on the Serial Monitor
+  Serial.print("Sensor Telemetry - Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+  
+  delay(500); // Wait 0.5s between readings
+}`,
+                simulationPreset: {
+                    ledColor: '#3b82f6',
+                    servoAngle: 90,
+                    ultrasonicDistance: 80,
+                    components: [
+                        { type: "uno", label: "StarkCore Uno R3" },
+                        { type: "ultrasonic" }
+                    ]
+                }
+            },
+            {
+                id: "servo-actuator",
+                title: "3. Precision Actuation: Servo Rotations",
+                difficulty: "Intermediate",
+                estimatedTime: "12 mins",
+                category: "Actuators",
+                description: "Learn how to control a micro servo motor. Servos are the joints, steering gears, and robotic arms of advanced robots.",
+                objective: "Understand PWM (Pulse Width Modulation), importing external C++ libraries (<Servo.h>), and sweeping angles.",
+                hardwareList: ["Arduino Uno", "SG90 Micro Servo Motor", "Breadboard", "Jumper Wires"],
+                instructions: [
+                    "Connect the red power wire of the Servo to 5V on the Arduino.",
+                    "Connect the brown/black ground wire of the Servo to GND.",
+                    "Connect the orange/yellow control wire to Digital Pin 6 (a PWM-capable pin).",
+                    "Run the code to see the servo sweep between 0 and 180 degrees continuously."
+                ],
+                arduinoCode: `// StarkBuild Robotics Laboratory
+// Lesson 3: SG90 Servo Sweep Control
+
+#include <Servo.h>
+
+Servo myServo;  // Create servo object to control a servo
+int pos = 0;    // Variable to store the servo position
+
+void setup() {
+  myServo.attach(6);  // Attaches the servo on pin 6 to the servo object
+  Serial.begin(9600);
+  Serial.println("Servo Controller Online: Sweeping Enabled.");
+}
+
+void loop() {
+  // Sweep from 0 to 180 degrees
+  for (pos = 0; pos <= 180; pos += 1) {
+    myServo.write(pos);              // Tell servo to go to position in variable 'pos'
+    if (pos % 30 == 0) {
+      Serial.print("Servo Swivel: ");
+      Serial.print(pos);
+      Serial.println(" deg");
+    }
+    delay(15);                       // Waits 15ms for the servo to reach the position
+  }
+  
+  // Sweep back from 180 to 0 degrees
+  for (pos = 180; pos >= 0; pos -= 1) {
+    myServo.write(pos);              // Tell servo to go to position in variable 'pos'
+    if (pos % 30 == 0) {
+      Serial.print("Servo Swivel: ");
+      Serial.print(pos);
+      Serial.println(" deg");
+    }
+    delay(15);                       // Waits 15ms for the servo to reach the position
+  }
+}`,
+                simulationPreset: {
+                    ledColor: '#ef4444',
+                    servoAngle: 0,
+                    ultrasonicDistance: 80,
+                    components: [
+                        { type: "uno", label: "StarkCore Uno R3" },
+                        { type: "servo" }
+                    ]
+                }
+            },
+            {
+                id: "obstacle-rover",
+                title: "4. Autonomous Mech: Obstacle Avoidance Rover",
+                difficulty: "Advanced",
+                estimatedTime: "25 mins",
+                category: "Robotics",
+                description: "Combine distance sensors and steering micro servos to engineer an autonomous robotic car base that scans its surroundings and steers clear of obstacles.",
+                objective: "Master complex robotic decision trees, combining multiple hardware libraries, and engineering feedback loops.",
+                hardwareList: ["Arduino Uno R3", "HC-SR04 Sensor", "SG90 Micro Servo Motor", "L298N H-Bridge Motor Driver", "2x DC Motors & Wheels", "Chassis & Battery Pack"],
+                instructions: [
+                    "Connect the Ultrasonic trigger to Pin 9 and Echo to Pin 8.",
+                    "Connect the Sweep Servo to Pin 6 to steer the Ultrasonic radar.",
+                    "Connect the dual DC motors to pins 3, 4 (Left) and 10, 11 (Right) to command motion.",
+                    "Power up the simulator. When the distance is less than 20cm, the robot will halt, scan left and right with the servo, and drive towards the clearest direction!"
+                ],
+                arduinoCode: `// StarkBuild Robotics Laboratory
+// Lesson 4: Autonomous Obstacle-Avoidance Rover
+// Powered by WK Innovations
+
+#include <Servo.h>
+
+const int TRIG_PIN = 9;
+const int ECHO_PIN = 8;
+const int SERVO_PIN = 6;
+
+// Simulated motor control pins
+const int LEFT_MOTOR_FWD = 3;
+const int LEFT_MOTOR_REV = 4;
+const int RIGHT_MOTOR_FWD = 10;
+const int RIGHT_MOTOR_REV = 11;
+
+Servo radarServo;
+int distance = 0;
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  
+  pinMode(LEFT_MOTOR_FWD, OUTPUT);
+  pinMode(LEFT_MOTOR_REV, OUTPUT);
+  pinMode(RIGHT_MOTOR_FWD, OUTPUT);
+  pinMode(RIGHT_MOTOR_REV, OUTPUT);
+  
+  radarServo.attach(SERVO_PIN);
+  radarServo.write(90); // Look straight ahead
+  
+  Serial.begin(9600);
+  Serial.println("--- ROVER STARK-1 ACTIVATED ---");
+  Serial.println("Sensors calibrated. Engines ready.");
+  delay(1000);
+}
+
+void loop() {
+  radarServo.write(90);
+  delay(100);
+  distance = readDistance();
+  
+  if (distance < 25) {
+    stopMotors();
+    delay(500);
+    radarServo.write(20);
+    delay(500);
+    int distRight = readDistance();
+    
+    radarServo.write(160);
+    delay(500);
+    int distLeft = readDistance();
+    
+    radarServo.write(90);
+    delay(200);
+    
+    if (distRight > distLeft) {
+      turnRight();
+    } else {
+      turnLeft();
+    }
+    delay(800);
+    stopMotors();
+  } else {
+    driveForward();
+    delay(200);
+  }
+}`,
+                simulationPreset: {
+                    ledColor: '#f59e0b',
+                    servoAngle: 90,
+                    ultrasonicDistance: 80,
+                    components: [
+                        { type: "uno", label: "StarkCore Uno R3" },
+                        { type: "ultrasonic" },
+                        { type: "servo" }
+                    ]
+                }
+            }
+        ];
+
+        // Custom Highlight Tokenizer for IDE view
+        function highlightArduinoCode(code) {
+            let escaped = code
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            // Comments (green)
+            escaped = escaped.replace(/(\/\/.*)/g, '<span class="text-emerald-500 font-medium">$1</span>');
+            // Directives (pink)
+            escaped = escaped.replace(/(#include\s+&lt;.*&gt;)/g, '<span class="text-pink-400 font-bold">$1</span>');
+            // Core keywords (indigo)
+            escaped = escaped.replace(/\b(void|int|const|long|float|char|bool|class|struct)\b/g, '<span class="text-indigo-400 font-semibold">$1</span>');
+            // Control blocks (purple)
+            escaped = escaped.replace(/\b(setup|loop|if|else|for|while|return)\b/g, '<span class="text-purple-400 font-bold">$1</span>');
+            // Pins state (magenta)
+            escaped = escaped.replace(/\b(HIGH|LOW|OUTPUT|INPUT|INPUT_PULLUP)\b/g, '<span class="text-pink-500 font-bold">$1</span>');
+            // Builtins (amber)
+            escaped = escaped.replace(/\b(pinMode|digitalWrite|digitalRead|analogWrite|analogRead|delay|delayMicroseconds|pulseIn|Serial|begin|println|print|attach|write)\b/g, '<span class="text-amber-500">$1</span>');
+            // Numbers (cyan)
+            escaped = escaped.replace(/\b(\d+)\b/g, '<span class="text-cyan-400">$1</span>');
+            
+            return escaped;
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId) {
+            appState.activeTab = tabId;
+            
+            // Toggle panel active classes
+            const panels = ['lessons', 'simulator', 'quizzes', 'ai'];
+            panels.forEach(p => {
+                const dom = document.getElementById(`panel-${p}`);
+                const tabBtn = document.getElementById(`tab-${p}`);
+                if (p === tabId) {
+                    dom.classList.remove('hidden');
+                    if (p === 'lessons') dom.classList.add('grid');
+                    if (p === 'simulator') dom.classList.add('grid');
+                    if (p === 'ai') dom.classList.add('flex');
+                    
+                    tabBtn.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all bg-indigo-600 text-slate-100 shadow-[0_0_15px_rgba(79,70,229,0.35)] border border-indigo-500/20";
+                } else {
+                    dom.classList.add('hidden');
+                    dom.classList.remove('grid', 'flex');
+                    tabBtn.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-mono font-bold rounded-xl transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50";
+                }
+            });
+
+            // Re-render and resize three.js renderer if needed
+            if (tabId === 'simulator') {
+                setTimeout(resizeThreeRenderer, 50);
+            }
+            
+            // Re-draw lucide icons
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        // --- LESSON SELECTOR AND WORKFLOW STEPS ---
+        function selectLesson(lessonId) {
+            appState.activeLessonId = lessonId;
+            appState.lessonStepIdx = 0;
+            
+            // stop simulation when changing lessons
+            stopSimulation();
+            
+            // reset state defaults based on preset
+            const lesson = ROBOTICS_CURRICULUM.find(l => l.id === lessonId);
+            appState.simState.ledColor = lesson.simulationPreset.ledColor;
+            appState.simState.servoAngle = lesson.simulationPreset.servoAngle;
+            appState.simState.ultrasonicDistance = lesson.simulationPreset.ultrasonicDistance;
+            appState.simState.ledOn = false;
+
+            // Sync range inputs
+            const sliderUs = document.getElementById('slider-ultrasonic');
+            const sliderSv = document.getElementById('slider-servo');
+            if (sliderUs) sliderUs.value = appState.simState.ultrasonicDistance;
+            if (sliderSv) sliderSv.value = appState.simState.servoAngle;
+
+            rebuild3DWorkbench(lesson);
+            renderLessonUI();
+        }
+
+        function renderLessonUI() {
+            const lesson = ROBOTICS_CURRICULUM.find(l => l.id === appState.activeLessonId);
+            
+            // Sidebar lessons list highlighting
+            const listContainer = document.getElementById('lessons-list');
+            listContainer.innerHTML = ROBOTICS_CURRICULUM.map(l => `
+                <button onclick="selectLesson('${l.id}')" class="w-full text-left p-3.5 rounded-2xl border transition-all flex flex-col gap-1 cursor-pointer ${
+                    l.id === appState.activeLessonId 
+                        ? 'bg-indigo-950/40 border-indigo-600 shadow-[0_0_10px_rgba(99,102,241,0.15)]' 
+                        : 'bg-slate-950/40 border-slate-850 hover:border-slate-800 text-slate-300'
+                }">
+                    <div class="flex justify-between items-center text-[10px] font-mono">
+                        <span class="text-indigo-400 uppercase font-bold">${l.category}</span>
+                        <span class="text-slate-500">${l.difficulty}</span>
+                    </div>
+                    <span class="text-xs sm:text-sm font-bold text-slate-100 leading-tight">${l.title}</span>
+                </button>
+            `).join('');
+
+            // Render Right Details Panel
+            document.getElementById('lesson-meta').innerText = `${lesson.category} • ${lesson.difficulty} • ${lesson.estimatedTime}`;
+            document.getElementById('lesson-title').innerText = lesson.title;
+            document.getElementById('lesson-desc').innerText = lesson.description;
+            document.getElementById('lesson-objective').innerText = lesson.objective;
+            
+            // BOM
+            const bomContainer = document.getElementById('lesson-bom');
+            bomContainer.innerHTML = lesson.hardwareList.map(h => `
+                <li class="flex items-center gap-2">
+                    <span class="w-1 h-1 rounded-full bg-indigo-400"></span>
+                    ${h}
+                </li>
+            `).join('');
+
+            // Step Text
+            document.getElementById('step-counter').innerText = `Step ${appState.lessonStepIdx + 1} of ${lesson.instructions.length}`;
+            const pct = ((appState.lessonStepIdx + 1) / lesson.instructions.length) * 100;
+            document.getElementById('step-progress-bar').style.width = `${pct}%`;
+            document.getElementById('step-text').innerText = lesson.instructions[appState.lessonStepIdx];
+
+            // Disable triggers
+            document.getElementById('btn-prev-step').disabled = appState.lessonStepIdx === 0;
+            document.getElementById('btn-next-step').disabled = appState.lessonStepIdx === lesson.instructions.length - 1;
+
+            // Arduino code editor block
+            document.getElementById('code-editor-area').innerHTML = highlightArduinoCode(lesson.arduinoCode);
+            
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        function prevStep() {
+            if (appState.lessonStepIdx > 0) {
+                appState.lessonStepIdx--;
+                renderLessonUI();
+            }
+        }
+
+        function nextStep() {
+            const lesson = ROBOTICS_CURRICULUM.find(l => l.id === appState.activeLessonId);
+            if (appState.lessonStepIdx < lesson.instructions.length - 1) {
+                appState.lessonStepIdx++;
+                renderLessonUI();
+            }
+        }
+
+        function compileAndRun() {
+            // Trigger beautiful console animation
+            switchTab('simulator');
+            clearTerminal();
+            logSerial("⚙️ Launching Stark Compiler Core...");
+            logSerial("⚙️ Analyzing dependency includes...");
+            
+            setTimeout(() => {
+                logSerial("⚙️ Linker matching target architecture StarkCore-UnoR3...");
+                logSerial("⚙️ Code size: 1482 bytes (4% flash memory used)");
+                logSerial("✅ SUCCESS: Upload completed. Booting microcontroller virtual rail...");
+                setTimeout(() => {
+                    startSimulation();
+                }, 400);
+            }, 800);
+        }
+
+
+        // --- THREE.JS 3D WORKBENCH GRAPHICS ---
+        let scene, camera, renderer, sceneGroup;
+        let deskMat, pcb, breadboard;
+        let ledBody, ledDome, ledLight;
+        let servoCasing, servoHorn;
+        let ultrasonicPanel, ultrasonicCylinderL, ultrasonicCylinderR, sonarLinesGroup;
+        let redObstacleMesh;
+
+        let is3DInitialized = false;
+        let isPointerDragging = false;
+        let previousPointerPos = { x: 0, y: 0 };
+
+        function init3DEnvironment() {
+            if (is3DInitialized) return;
+            
+            const container = document.getElementById('three-canvas-container');
+            const w = container.clientWidth || 500;
+            const h = container.clientHeight || 400;
+
+            // 1. Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color("#080a10");
+            scene.fog = new THREE.FogExp2("#080a10", 0.05);
+
+            // 2. Camera
+            camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+            camera.position.set(0, 8, 12);
+            camera.lookAt(0, 0, 0);
+
+            // 3. Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(w, h);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // 4. Lights
+            const ambient = new THREE.AmbientLight("#202330", 2.2);
+            scene.add(ambient);
+
+            const direct = new THREE.DirectionalLight("#a5f3fc", 1.8);
+            direct.position.set(5, 15, 6);
+            direct.castShadow = true;
+            scene.add(direct);
+
+            const orangeRim = new THREE.DirectionalLight("#6366f1", 0.8);
+            orangeRim.position.set(-6, 3, -6);
+            scene.add(orangeRim);
+
+            // Grid Desk floor
+            const deskGrid = new THREE.GridHelper(30, 30, "#1e293b", "#0f172a");
+            deskGrid.position.y = -2;
+            scene.add(deskGrid);
+
+            // Center group pivot
+            sceneGroup = new THREE.Group();
+            sceneGroup.rotation.y = -0.3;
+            scene.add(sceneGroup);
+
+            // 5. Build core Desk Mat and generic board backbones
+            buildBaseWorkbench();
+
+            // 6. Bind touch pointer controls (CRITICAL FOR ANDROID SCREEN NAVIGATION DRAG)
+            container.addEventListener('pointerdown', (e) => {
+                isPointerDragging = true;
+                previousPointerPos = { x: e.clientX, y: e.clientY };
+                container.setPointerCapture(e.pointerId);
+            });
+
+            container.addEventListener('pointermove', (e) => {
+                if (!isPointerDragging) return;
+                const dx = e.clientX - previousPointerPos.x;
+                const dy = e.clientY - previousPointerPos.y;
+
+                sceneGroup.rotation.y += dx * 0.007;
+                sceneGroup.rotation.x += dy * 0.007;
+
+                // constrain vertical rot
+                sceneGroup.rotation.x = Math.max(-0.6, Math.min(0.6, sceneGroup.rotation.x));
+
+                previousPointerPos = { x: e.clientX, y: e.clientY };
+            });
+
+            container.addEventListener('pointerup', (e) => {
+                isPointerDragging = false;
+                container.releasePointerCapture(e.pointerId);
+            });
+            container.addEventListener('pointercancel', () => {
+                isPointerDragging = false;
+            });
+
+            // 7. Animation Loop
+            function animate3D() {
+                requestAnimationFrame(animate3D);
+
+                // slow rotation drift
+                if (!isPointerDragging) {
+                    sceneGroup.rotation.y += 0.001;
+                }
+
+                // Sync LED emissive glows
+                if (ledDome) {
+                    if (appState.simState.ledOn) {
+                        ledDome.material.emissive.set(appState.simState.ledColor);
+                        ledDome.material.emissiveIntensity = 2.0;
+                        ledLight.intensity = 2.5;
+                    } else {
+                        ledDome.material.emissive.set("#000000");
+                        ledDome.material.emissiveIntensity = 0.0;
+                        ledLight.intensity = 0.0;
+                    }
+                }
+
+                // Sync Servo angles
+                if (servoHorn) {
+                    const rad = ((appState.simState.servoAngle - 90) * Math.PI) / 180;
+                    servoHorn.rotation.y = THREE.MathUtils.lerp(servoHorn.rotation.y, rad, 0.1);
+                }
+
+                // Sync Obstacle distance placement
+                if (redObstacleMesh) {
+                    const posX = -3.2 + (appState.simState.ultrasonicDistance / 200) * 6.5;
+                    redObstacleMesh.position.x = posX;
+                    
+                    // wave animation scale
+                    if (sonarLinesGroup) {
+                        sonarLinesGroup.scale.x = Math.max(0.1, (posX + 1.8) / 3.0);
+                    }
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            animate3D();
+            is3DInitialized = true;
+        }
+
+        function resizeThreeRenderer() {
+            if (!is3DInitialized) return;
+            const container = document.getElementById('three-canvas-container');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        function buildBaseWorkbench() {
+            // High fidelity Slate desk pad
+            const deskGeo = new THREE.BoxGeometry(13.5, 0.1, 8.5);
+            const deskMatColor = new THREE.MeshStandardMaterial({ color: "#111622", roughness: 0.8 });
+            const pad = new THREE.Mesh(deskGeo, deskMatColor);
+            pad.position.y = -0.5;
+            pad.receiveShadow = true;
+            sceneGroup.add(pad);
+
+            // Glowing blue outline border frame
+            const deskEdgeGeo = new THREE.BoxGeometry(13.6, 0.12, 8.6);
+            const borderMat = new THREE.MeshStandardMaterial({ color: "#6366f1", wireframe: true });
+            const edge = new THREE.Mesh(deskEdgeGeo, borderMat);
+            edge.position.y = -0.5;
+            sceneGroup.add(edge);
+        }
+
+        function rebuild3DWorkbench(lesson) {
+            init3DEnvironment();
+
+            // Clear previous component models
+            const toRemove = [];
+            sceneGroup.children.forEach(c => {
+                if (c !== sceneGroup.children[0] && c !== sceneGroup.children[1]) {
+                    toRemove.push(c);
+                }
+            });
+            toRemove.forEach(c => sceneGroup.remove(c));
+
+            // Reset references
+            ledDome = null;
+            ledLight = null;
+            servoHorn = null;
+            redObstacleMesh = null;
+            sonarLinesGroup = null;
+
+            const compPreset = lesson.simulationPreset.components;
+
+            // Load Arduino board mesh
+            if (compPreset.some(c => c.type === 'uno')) {
+                const uno = new THREE.Group();
+                uno.position.set(-2, 0, 0.8);
+
+                const boardGeo = new THREE.BoxGeometry(4.2, 0.15, 3.0);
+                const pcbMaterial = new THREE.MeshStandardMaterial({ color: "#112e69", roughness: 0.5 });
+                const basePcb = new THREE.Mesh(boardGeo, pcbMaterial);
+                uno.add(basePcb);
+
+                // Port headers
+                const usbGeo = new THREE.BoxGeometry(1.2, 0.45, 0.8);
+                const usbMat = new THREE.MeshStandardMaterial({ color: "#94a3b8", metalness: 0.8, roughness: 0.3 });
+                const usb = new THREE.Mesh(usbGeo, usbMat);
+                usb.position.set(-1.8, 0.25, 0.8);
+                uno.add(usb);
+
+                const powerPortGeo = new THREE.BoxGeometry(1.0, 0.5, 0.7);
+                const powerPortMat = new THREE.MeshStandardMaterial({ color: "#1e293b" });
+                const pport = new THREE.Mesh(powerPortGeo, powerPortMat);
+                pport.position.set(-1.8, 0.25, -0.8);
+                uno.add(pport);
+
+                const headersMat = new THREE.MeshStandardMaterial({ color: "#020617" });
+                const header1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.25, 0.18), headersMat);
+                header1.position.set(0.6, 0.2, 1.25);
+                uno.add(header1);
+
+                const header2 = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.25, 0.18), headersMat);
+                header2.position.set(0.4, 0.2, -1.25);
+                uno.add(header2);
+
+                sceneGroup.add(uno);
+            }
+
+            // Load Breadboard mesh
+            if (compPreset.some(c => c.type === 'breadboard')) {
+                const bb = new THREE.Group();
+                bb.position.set(2.4, 0, 1.0);
+
+                const bbGeo = new THREE.BoxGeometry(4.0, 0.18, 2.8);
+                const bbMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.9 });
+                const pcbBB = new THREE.Mesh(bbGeo, bbMat);
+                bb.add(pcbBB);
+
+                // Bus rail screen lines
+                const railLinesGeo = new THREE.BoxGeometry(3.6, 0.2, 0.05);
+                const blueRailMat = new THREE.MeshStandardMaterial({ color: "#2563eb" });
+                const rLine1 = new THREE.Mesh(railLinesGeo, blueRailMat);
+                rLine1.position.set(0, 0.01, 1.1);
+                bb.add(rLine1);
+
+                const redRailMat = new THREE.MeshStandardMaterial({ color: "#ef4444" });
+                const rLine2 = new THREE.Mesh(railLinesGeo, redRailMat);
+                rLine2.position.set(0, 0.01, -1.1);
+                bb.add(rLine2);
+
+                sceneGroup.add(bb);
+            }
+
+            // Load LED structure
+            if (compPreset.some(c => c.type === 'led')) {
+                const ledGroup = new THREE.Group();
+                ledGroup.position.set(2.0, 0.1, 1.0);
+
+                const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.8);
+                const legMat = new THREE.MeshStandardMaterial({ color: "#cbd5e1", metalness: 0.9 });
+                const leg1 = new THREE.Mesh(legGeo, legMat);
+                leg1.position.set(-0.1, 0.3, 0);
+                ledGroup.add(leg1);
+
+                const leg2 = new THREE.Mesh(legGeo, legMat);
+                leg2.position.set(0.1, 0.25, 0);
+                ledGroup.add(leg2);
+
+                const baseGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.35);
+                const domeGeo = new THREE.SphereGeometry(0.16, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+                const lensMaterial = new THREE.MeshStandardMaterial({
+                    color: appState.simState.ledColor,
+                    roughness: 0.1,
+                    transparent: true,
+                    opacity: 0.9
+                });
+
+                const cylinder = new THREE.Mesh(baseGeo, lensMaterial);
+                cylinder.position.y = 0.8;
+                ledGroup.add(cylinder);
+
+                const dome = new THREE.Mesh(domeGeo, lensMaterial);
+                dome.position.y = 0.95;
+                ledGroup.add(dome);
+                ledDome = dome;
+
+                // Glowing point light source
+                ledLight = new THREE.PointLight(appState.simState.ledColor, 0, 6);
+                ledLight.position.set(0, 1.1, 0);
+                ledGroup.add(ledLight);
+
+                sceneGroup.add(ledGroup);
+            }
+
+            // Load Servo motor structure
+            if (compPreset.some(c => c.type === 'servo')) {
+                const servo = new THREE.Group();
+                servo.position.set(2.4, 0.4, -1.2);
+
+                // ABS Blue casing
+                const casingGeo = new THREE.BoxGeometry(1.4, 0.9, 0.7);
+                const bodyMat = new THREE.MeshStandardMaterial({ color: "#1d4ed8", roughness: 0.4 });
+                const body = new THREE.Mesh(casingGeo, bodyMat);
+                servo.add(body);
+
+                // Rotation spindle
+                const gearCap = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.2, 0.2),
+                    new THREE.MeshStandardMaterial({ color: "#f1f5f9" })
+                );
+                gearCap.position.set(0.35, 0.5, 0);
+                servo.add(gearCap);
+
+                // Steering arm horn
+                const hornGroup = new THREE.Group();
+                hornGroup.position.set(0.35, 0.6, 0);
+
+                const arm = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.7, 0.08, 0.3),
+                    new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.6 })
+                );
+                hornGroup.add(arm);
+
+                servo.add(hornGroup);
+                servoHorn = hornGroup;
+
+                sceneGroup.add(servo);
+            }
+
+            // Load Ultrasonic HC-SR04 sonar module
+            if (compPreset.some(c => c.type === 'ultrasonic')) {
+                const sonar = new THREE.Group();
+                sonar.position.set(-1.8, 0.6, -1.2);
+
+                const circuitBoard = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.12, 0.9, 1.8),
+                    new THREE.MeshStandardMaterial({ color: "#065f46" })
+                );
+                sonar.add(circuitBoard);
+
+                // Dual aluminum acoustics barrels
+                const barrelGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.5);
+                const metalMat = new THREE.MeshStandardMaterial({ color: "#94a3b8", metalness: 0.8, roughness: 0.2 });
+                const barrelL = new THREE.Mesh(barrelGeo, metalMat);
+                barrelL.rotation.z = Math.PI / 2;
+                barrelL.position.set(0.2, 0.1, -0.45);
+                sonar.add(barrelL);
+
+                const barrelR = new THREE.Mesh(barrelGeo, metalMat);
+                barrelR.rotation.z = Math.PI / 2;
+                barrelR.position.set(0.2, 0.1, 0.45);
+                sonar.add(barrelR);
+
+                // Sonar Wave lines indicators
+                sonarLinesGroup = new THREE.Group();
+                sonarLinesGroup.position.set(0.5, 0.1, 0);
+                sonar.add(sonarLinesGroup);
+
+                const sonarLineMaterial = new THREE.LineBasicMaterial({ color: "#38bdf8", transparent: true, opacity: 0.35 });
+                for (let i = 0.5; i < 2.8; i += 0.7) {
+                    const waveGeo = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(i, 0.15, -0.22 * i),
+                        new THREE.Vector3(i + 0.1, 0, 0),
+                        new THREE.Vector3(i, -0.15, 0.22 * i),
+                    ]);
+                    const curve = new THREE.Line(waveGeo, sonarLineMaterial);
+                    sonarLinesGroup.add(curve);
+                }
+
+                // Red dynamic target obstacle block
+                const obstacleBlock = new THREE.Group();
+                const cube = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.4, 1.2, 1.8),
+                    new THREE.MeshStandardMaterial({ color: "#dc2626", roughness: 0.5 })
+                );
+                cube.position.y = -0.1;
+                obstacleBlock.add(cube);
+                
+                sceneGroup.add(obstacleBlock);
+                redObstacleMesh = obstacleBlock;
+
+                sceneGroup.add(sonar);
+            }
+        }
+
+
+        // --- SIMULATION TIMERS AND DATA LOGS ---
+        let simInterval = null;
+        let serialLogCount = 0;
+        let sweepDirection = 1;
+
+        function startSimulation() {
+            stopSimulation();
+            appState.simState.isPlaying = true;
+
+            document.getElementById('icon-sim-play').setAttribute('data-lucide', 'pause');
+            document.getElementById('text-sim-play').innerText = 'Pause Simulator';
+
+            logSerial("💡 StarkCore Microcontroller link active. Voltage checks normal.");
+
+            if (appState.activeLessonId === 'blink-led') {
+                logSerial("LED_PIN configuration: digital 13 designated as OUTPUT.");
+                simInterval = setInterval(() => {
+                    appState.simState.ledOn = !appState.simState.ledOn;
+                    logSerial(`LED state triggered: ${appState.simState.ledOn ? 'HIGH (5.0V)' : 'LOW (0V)'}`);
+                    updateTelemetryHUD();
+                }, 1000);
+            } else if (appState.activeLessonId === 'ultrasonic-radar') {
+                logSerial("Acoustic radar initialized. Measuring return-echo wave travel times...");
+                simInterval = setInterval(() => {
+                    logSerial(`Echo pulse duration: ${Math.floor(appState.simState.ultrasonicDistance * 58.8)}us | Spatial distance: ${appState.simState.ultrasonicDistance} cm`);
+                    updateTelemetryHUD();
+                }, 900);
+            } else if (appState.activeLessonId === 'servo-actuator') {
+                logSerial("Servo attached to pin 6. Angle rotation cycle armed.");
+                // Disable manual slider override input visually
+                document.getElementById('slider-servo').disabled = true;
+                document.getElementById('servo-slider-help').innerText = 'Locked: Simulator in control.';
+
+                simInterval = setInterval(() => {
+                    let ang = appState.simState.servoAngle + (10 * sweepDirection);
+                    if (ang >= 180) {
+                        ang = 180;
+                        sweepDirection = -1;
+                    } else if (ang <= 0) {
+                        ang = 0;
+                        sweepDirection = 1;
+                    }
+                    appState.simState.servoAngle = ang;
+                    
+                    const servoSlider = document.getElementById('slider-servo');
+                    if (servoSlider) servoSlider.value = ang;
+                    document.getElementById('label-servo-slider').innerText = `${ang}°`;
+
+                    logSerial(`PWM frequency: 50Hz | Servo gear swivel: ${ang} deg`);
+                    updateTelemetryHUD();
+                }, 150);
+            } else if (appState.activeLessonId === 'obstacle-rover') {
+                logSerial("Dual DC motors attached (IN1, IN2, IN3, IN4). Ready to scan path.");
+                let subStep = 0;
+                let clearDistR = 0;
+                let clearDistL = 0;
+
+                simInterval = setInterval(() => {
+                    if (appState.simState.ultrasonicDistance >= 25) {
+                        // Forward drive loop
+                        appState.simState.servoAngle = 90;
+                        appState.simState.ledOn = false;
+                        subStep = 0;
+                        
+                        logSerial(`🚀 Front route clear (${appState.simState.ultrasonicDistance}cm). Dual H-Bridge forward pulse: 100% duty cycle.`);
+                    } else {
+                        // Trigger collision avoidance decisions
+                        appState.simState.ledOn = true; // Blink LED warning indicator
+
+                        if (subStep === 0) {
+                            logSerial(`⚠️ WARNING: Spatial collision risk! Obstacle at ${appState.simState.ultrasonicDistance}cm! Halting motors...`);
+                            appState.simState.servoAngle = 90;
+                            subStep++;
+                        } else if (subStep === 1) {
+                            logSerial(`Steering servo to 20° right for sector scan...`);
+                            appState.simState.servoAngle = 20;
+                            clearDistR = appState.simState.ultrasonicDistance + Math.floor(Math.random() * 50) + 20;
+                            subStep++;
+                        } else if (subStep === 2) {
+                            logSerial(`Right sector evaluation: clear path distance = ${clearDistR}cm.`);
+                            logSerial(`Steering servo to 160° left for sector scan...`);
+                            appState.simState.servoAngle = 160;
+                            clearDistL = appState.simState.ultrasonicDistance + Math.floor(Math.random() * 50) + 20;
+                            subStep++;
+                        } else if (subStep === 3) {
+                            logSerial(`Left sector evaluation: clear path distance = ${clearDistL}cm.`);
+                            const pivotWay = clearDistR > clearDistL ? 'RIGHT' : 'LEFT';
+                            logSerial(`Path Selection Matrix choice: Pivot vehicle ${pivotWay}.`);
+                            appState.simState.servoAngle = 90;
+                            subStep++;
+                        } else {
+                            logSerial(`Pivot sequence complete. Engines resuming forward sweep.`);
+                            subStep = 0;
+                            // Simulate physical avoidance progress: clear obstacle
+                            appState.simState.ultrasonicDistance = Math.min(160, appState.simState.ultrasonicDistance + 45);
+                            document.getElementById('slider-ultrasonic').value = appState.simState.ultrasonicDistance;
+                            document.getElementById('label-us-slider').innerText = `${appState.simState.ultrasonicDistance} cm`;
+                        }
+                    }
+                    updateTelemetryHUD();
+                }, 1200);
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function stopSimulation() {
+            if (simInterval) {
+                clearInterval(simInterval);
+                simInterval = null;
+            }
+            appState.simState.isPlaying = false;
+            
+            const pBtn = document.getElementById('btn-toggle-sim');
+            if (pBtn) {
+                document.getElementById('icon-sim-play').setAttribute('data-lucide', 'play');
+                document.getElementById('text-sim-play').innerText = 'Start Simulator';
+            }
+
+            // Unlock manual sliders
+            const ss = document.getElementById('slider-servo');
+            if (ss) {
+                ss.disabled = false;
+                document.getElementById('servo-slider-help').innerText = 'Calibrate micro-servo gear shaft. Disabled during automated loops.';
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function toggleSimulation() {
+            if (appState.simState.isPlaying) {
+                stopSimulation();
+                logSerial("⏸️ Connection paused.");
+            } else {
+                startSimulation();
+            }
+        }
+
+        function resetSimulation() {
+            stopSimulation();
+            clearTerminal();
+            
+            const lesson = ROBOTICS_CURRICULUM.find(l => l.id === appState.activeLessonId);
+            appState.simState.ledColor = lesson.simulationPreset.ledColor;
+            appState.simState.servoAngle = lesson.simulationPreset.servoAngle;
+            appState.simState.ultrasonicDistance = lesson.simulationPreset.ultrasonicDistance;
+            appState.simState.ledOn = false;
+
+            // Sync sliders
+            const sliderUs = document.getElementById('slider-ultrasonic');
+            const sliderSv = document.getElementById('slider-servo');
+            if (sliderUs) sliderUs.value = appState.simState.ultrasonicDistance;
+            if (sliderSv) sliderSv.value = appState.simState.servoAngle;
+
+            document.getElementById('label-us-slider').innerText = `${appState.simState.ultrasonicDistance} cm`;
+            document.getElementById('label-servo-slider').innerText = `${appState.simState.servoAngle}°`;
+
+            logSerial("🔄 Simulator context restarted to default lesson presets.");
+            updateTelemetryHUD();
+        }
+
+        function updateTelemetryHUD() {
+            document.getElementById('telemetry-led').innerText = appState.simState.ledOn ? '5.0V (HIGH)' : '0.0V (LOW)';
+            document.getElementById('telemetry-led').className = appState.simState.ledOn ? 'text-emerald-400 font-bold animate-pulse' : 'text-slate-500 font-bold';
+            
+            document.getElementById('telemetry-servo').innerText = `${appState.simState.servoAngle}°`;
+            document.getElementById('telemetry-sonic').innerText = `${appState.simState.ultrasonicDistance} cm`;
+        }
+
+        // --- MANAGE SLIDER OVERRIDES ---
+        function updateUltrasonicSlider(val) {
+            appState.simState.ultrasonicDistance = parseInt(val);
+            document.getElementById('label-us-slider').innerText = `${val} cm`;
+            updateTelemetryHUD();
+        }
+
+        // Handle servo slider updates safely
+        function updateServoSlider(val) {
+            if (appState.simState.isPlaying && appState.activeLessonId === 'servo-actuator') return;
+            appState.simState.servoAngle = parseInt(val);
+            document.getElementById('label-servo-slider').innerText = `${val}°`;
+            updateTelemetryHUD();
+        }
+
+        function logSerial(text) {
+            const term = document.getElementById('serial-terminal');
+            if (serialLogCount === 0) term.innerHTML = '';
+            
+            const time = new Date().toLocaleTimeString().split(' ')[0];
+            term.innerHTML += `<div class="animate-fade-in"><span class="text-slate-600 font-mono">[${time}]</span> ${text}</div>`;
+            term.scrollTop = term.scrollHeight;
+            serialLogCount++;
+        }
+
+        function clearTerminal() {
+            const term = document.getElementById('serial-terminal');
+            term.innerHTML = '<div class="text-slate-600 italic">No connection established. Click "Start Simulator" to open Serial stream...</div>';
+            serialLogCount = 0;
+        }
+
+
+        // --- INTERACTIVE QUIZ DECK SYSTEM ---
+        const QUIZ_CURRICULUM_DATA = [
+            {
+                id: "arduino-basics",
+                title: "Arduino Fundamentals",
+                description: "Test your foundational understanding of pins, breadboards, voltage drops, and C++ setup/loop syntax.",
+                icon: "cpu",
+                questions: [
+                    {
+                        question: "Which function in an Arduino sketch runs once at start-up to define pin directions or configurations?",
+                        options: ["void loop()", "void setup()", "void init()", "void main()"],
+                        correctIdx: 1,
+                        explanation: "The setup() function runs exactly once when the Arduino is powered on or reset. It is used to initialize variables, pin modes, or start libraries."
+                    },
+                    {
+                        question: "Why must you place a resistor in series with a Light Emitting Diode (LED)?",
+                        options: [
+                            "To increase the voltage entering the LED",
+                            "To limit current and prevent burning out the LED",
+                            "To make the LED light up in different colors",
+                            "To convert alternating current to direct current"
+                        ],
+                        correctIdx: 1,
+                        explanation: "LEDs have low internal resistance. Without a current-limiting resistor, excessive current flows through the LED, which will burn it out instantly."
+                    },
+                    {
+                        question: "What is the approximate voltage supplied by the standard 5V pin on an Arduino Uno?",
+                        options: ["5 Volts DC", "5 Volts AC", "12 Volts DC", "3.3 Volts AC"],
+                        correctIdx: 0,
+                        explanation: "The Arduino Uno operates primarily on DC (Direct Current) electricity and the 5V pin delivers a stable 5 Volts DC supply."
+                    }
+                ]
+            },
+            {
+                id: "robotics-sensors",
+                title: "Sensors & Actuation",
+                description: "Challenge yourself on HC-SR04 sonar pulses, micro servos, H-bridge motors, and sensor calculations.",
+                icon: "radio",
+                questions: [
+                    {
+                        question: "How does the HC-SR04 ultrasonic sensor measure distance to an object?",
+                        options: [
+                            "By emitting infra-red light beams and measuring light reflection",
+                            "By measuring the atmospheric pressure variations",
+                            "By sending out a high-frequency acoustic pulse and timing its echo return",
+                            "By detecting gravitational pull alterations"
+                        ],
+                        correctIdx: 2,
+                        explanation: "The HC-SR04 sensor sends high-frequency sound waves (ultrasound) and measures the elapsed time for the echo to bounce off an object and return."
+                    },
+                    {
+                        question: "What is the standard angular range of a standard SG90 Micro Servo motor?",
+                        options: ["0 to 90 degrees", "0 to 180 degrees", "0 to 360 degrees", "Unrestricted spinning"],
+                        correctIdx: 1,
+                        explanation: "Standard SG90 micro servos have mechanical limits restricting their shaft rotation between 0 and 180 degrees of angle."
+                    },
+                    {
+                        question: "What does PWM stand for, which is used to modulate motor speed or LED brightness on Arduino?",
+                        options: [
+                            "Power Wave Modulation",
+                            "Pulse Width Modulation",
+                            "Phase Wattage Management",
+                            "Proportional Wheel Motion"
+                        ],
+                        correctIdx: 1,
+                        explanation: "PWM stands for Pulse Width Modulation. It simulates analog voltage levels by toggling a digital pin HIGH and LOW rapidly at varying duty cycles."
+                    }
+                ]
+            }
+        ];
+
+        function loadQuizCenter() {
+            const selectionPanel = document.getElementById('quiz-deck-selection');
+            const activeViewport = document.getElementById('quiz-active-viewport');
+            const scorePanel = document.getElementById('quiz-scorecard-viewport');
+
+            selectionPanel.classList.remove('hidden');
+            activeViewport.classList.add('hidden');
+            scorePanel.classList.add('hidden');
+
+            const listContainer = document.getElementById('quiz-categories-list');
+            listContainer.innerHTML = QUIZ_CURRICULUM_DATA.map(cat => `
+                <button onclick="startQuiz('${cat.id}')" class="text-left bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 hover:shadow-xl transition-all flex flex-col gap-3 cursor-pointer group">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl group-hover:bg-indigo-600 group-hover:text-slate-100 transition">
+                            <i data-lucide="${cat.icon}" class="w-4 h-4 text-indigo-400 group-hover:text-slate-100"></i>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Exam Category</span>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-bold text-slate-100">${cat.title}</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">${cat.description}</p>
+                    </div>
+                </button>
+            `).join('');
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function startQuiz(catId) {
+            appState.quizState.selectedCategory = catId;
+            appState.quizState.currentQuestionIdx = 0;
+            appState.quizState.score = 0;
+            appState.quizState.selectedOption = null;
+            appState.quizState.isSubmitted = false;
+
+            document.getElementById('quiz-deck-selection').classList.add('hidden');
+            document.getElementById('quiz-active-viewport').classList.remove('hidden');
+
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const cat = QUIZ_CURRICULUM_DATA.find(c => c.id === appState.quizState.selectedCategory);
+            const question = cat.questions[appState.quizState.currentQuestionIdx];
+
+            document.getElementById('quiz-title-badge').innerText = `Exam: ${cat.title}`;
+            document.getElementById('quiz-step-badge').innerText = `Question ${appState.quizState.currentQuestionIdx + 1} of ${cat.questions.length}`;
+            document.getElementById('quiz-question-text').innerText = question.question;
+
+            // Render options grid (touch friendly large blocks)
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = question.options.map((opt, idx) => {
+                let btnStyles = "bg-slate-950/40 border-slate-850 hover:border-slate-800 text-slate-300";
+                
+                if (appState.quizState.selectedOption === idx) {
+                    btnStyles = "bg-indigo-950/30 border-indigo-500 text-indigo-200 font-bold";
+                }
+
+                if (appState.quizState.isSubmitted) {
+                    if (idx === question.correctIdx) {
+                        btnStyles = "bg-emerald-950/30 border-emerald-500 text-emerald-200 font-bold";
+                    } else if (appState.quizState.selectedOption === idx) {
+                        btnStyles = "bg-rose-950/30 border-rose-500 text-rose-200";
+                    }
+                }
+
+                return `
+                    <button onclick="selectQuizOption(${idx})" 
+                            ${appState.quizState.isSubmitted ? 'disabled' : ''} 
+                            class="w-full text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm flex items-center justify-between cursor-pointer ${btnStyles}">
+                        <span>${opt}</span>
+                        ${appState.quizState.isSubmitted && idx === question.correctIdx ? '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>' : ''}
+                        ${appState.quizState.isSubmitted && appState.quizState.selectedOption === idx && idx !== question.correctIdx ? '<i data-lucide="x" class="w-4 h-4 text-rose-500"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            // Action button
+            const actionBtn = document.getElementById('btn-quiz-action');
+            if (!appState.quizState.isSubmitted) {
+                actionBtn.innerText = "Submit Answer";
+                actionBtn.disabled = appState.quizState.selectedOption === null;
+            } else {
+                const isLast = appState.quizState.currentQuestionIdx === cat.questions.length - 1;
+                actionBtn.innerText = isLast ? "Finish Exam & See Score" : "Next Question";
+                actionBtn.disabled = false;
+            }
+
+            // Explanatory note
+            const explanationBlock = document.getElementById('quiz-explanation-block');
+            if (appState.quizState.isSubmitted) {
+                explanationBlock.classList.remove('hidden');
+                document.getElementById('quiz-explanation-text').innerText = question.explanation;
+            } else {
+                explanationBlock.classList.add('hidden');
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function selectQuizOption(idx) {
+            if (appState.quizState.isSubmitted) return;
+            appState.quizState.selectedOption = idx;
+            document.getElementById('btn-quiz-action').disabled = false;
+            renderQuizQuestion();
+        }
+
+        function submitQuizAnswer() {
+            const cat = QUIZ_CURRICULUM_DATA.find(c => c.id === appState.quizState.selectedCategory);
+            const question = cat.questions[appState.quizState.currentQuestionIdx];
+
+            if (!appState.quizState.isSubmitted) {
+                // Submit phase
+                appState.quizState.isSubmitted = true;
+                if (appState.quizState.selectedOption === question.correctIdx) {
+                    appState.quizState.score++;
+                }
+                renderQuizQuestion();
+            } else {
+                // Next step phase
+                if (appState.quizState.currentQuestionIdx < cat.questions.length - 1) {
+                    appState.quizState.currentQuestionIdx++;
+                    appState.quizState.selectedOption = null;
+                    appState.quizState.isSubmitted = false;
+                    renderQuizQuestion();
+                } else {
+                    // Show final score panel
+                    showQuizResults(cat);
+                }
+            }
+        }
+
+        function showQuizResults(cat) {
+            document.getElementById('quiz-active-viewport').classList.add('hidden');
+            const scorePanel = document.getElementById('quiz-scorecard-viewport');
+            scorePanel.classList.remove('hidden');
+
+            const total = cat.questions.length;
+            const score = appState.quizState.score;
+            const pct = Math.round((score / total) * 100);
+
+            document.getElementById('scorecard-correct-text').innerText = `${score} / ${total}`;
+            document.getElementById('scorecard-percent-text').innerText = `${pct}%`;
+        }
+
+        function resetQuizState() {
+            appState.quizState.selectedCategory = null;
+            loadQuizCenter();
+        }
+
+        function retakeQuiz() {
+            startQuiz(appState.quizState.selectedCategory);
+        }
+
+
+        // --- OFFLINE AI INTENT RESPONSE CHAT BOT ---
+        const INTENT_RESPONSES = {
+            'led-resistor': `### 💡 LED Current-Limiting Resistor Mathematics\n\nTo safely illuminate an LED, we apply **Ohm's Law**: \n\n$$\\mathbf{V = I \\times R \\implies R = \\frac{V_{source} - V_{forward}}{I_{LED}}}$$\n\n**Typical Calculation breakdown:**\n- **Supply Voltage ($V_s$):** 5 Volts (standard Arduino output pin).\n- **LED Forward Voltage ($V_f$):** ~2.0 Volts for a standard red LED.\n- **Max safe continuous current ($I$):** 20mA (or 0.02 Amps).\n\n$$R = \\frac{5.0\\text{V} - 2.0\\text{V}}{0.02\\text{A}} = 150 \\ \\Omega$$\n\nTo ensure durability, a **220 Ohm standard resistor** is widely utilized in labs. This keeps the running current around 14mA, maintaining brightness while ensuring components do not burn out.`,
+            
+            'h-bridge': `### 🏎️ DC Motor Drive and H-Bridge Logic\n\nMicrocontrollers (like Arduino) cannot supply enough current to spin inductive loads like high-power DC motors directly (max output is only 40mA per pin). Attempting to do so will destroy the chip.\n\nAn **H-Bridge** (like the L298N) acts as a powerful solid-state steering switchboard:\n\n1. **Forward Motion:** Pin $A$ is toggled **HIGH** and Pin $B$ is toggled **LOW**. Current flows down clockwise, spinning wheels forward.\n2. **Reverse Motion:** Pin $A$ is toggled **LOW** and Pin $B$ is toggled **HIGH**. Current direction switches counter-clockwise, reversing wheels.\n3. **Braking:** Both Pin $A$ and $B$ are toggled **LOW** or **HIGH**. The magnetic stator locks, halting spin.\n\nUse dual PWM inputs on Enable Pins to module duty-cycles and dial in precise velocities!`,
+            
+            'ultrasonic-math': `### 📡 Spatial Calculation: HC-SR04 Acoustics\n\nThe ultrasonic rangefinder calculates space by measuring **Acoustic Round-Trip Delay Time**:\n\n1. **Wave Outflow:** A 10-microsecond trigger pulse commands the transducer eye to blast eight pulses of high-frequency $40\\text{kHz}$ ultrasonic sound.\n2. **Wave Echo:** Sound waves bounce off the object, returning to the sensor eye which forces the ECHO pin HIGH.\n3. **Speed of sound in air ($v$):** $340\\text{ m/s}$ (or $0.034\\text{ cm}$ per microsecond).\n\n$$\\text{Distance} = \\frac{\\text{Echo Delay Duration} \\times 0.034}{2}$$\n\n*Why divide by 2?* Because the measured pulse represents the wave traveling to the obstacle and bouncing all the way back!`,
+            
+            'servo-pwm': `### 📐 Servo Motor Position & PWM Duty Cycles\n\nServo motors do not spin limitlessly; they translate signals into precise physical angles (typically 0° to 180°).\n\nThis position is governed by standard **Pulse Width Modulation (PWM)**:\n- **Control Frequency:** 50Hz (meaning a pulse is sent every 20 milliseconds).\n- **Angular Pulse Widths:**\n  - **1.0 ms pulse:** Shaft rotates to exactly **0 degrees**.\n  - **1.5 ms pulse:** Shaft rotates to exactly **90 degrees** (centered position).\n  - **2.0 ms pulse:** Shaft rotates to exactly **180 degrees**.\n\nThe Arduino \`<Servo.h>\` library handles this underlying timer duty-cycle configuration behind the scenes, allowing you to use simple intuitive angle commands like \`myServo.write(angle)\`!`,
+            
+            'i2c': `### 🌐 Inter-Integrated Circuit (I2C) Protocol\n\nUnlike UART (Serial) which is 1-to-1, **I2C** is a powerful synchronous master-slave bus communication protocol utilizing only **two physical wires**:\n\n1. **SDA (Serial Data Line):** The bidirectional rail where data is sent and received.\n2. **SCL (Serial Clock Line):** Synchronizes packet transmissions via clock pulses.\n\n**Core features:**\n- Supports up to 127 individual slave devices (LCD panels, gyroscopes, barometer sensors) connected onto the exact same two pins using hexadecimal addresses.\n- Employs pull-up resistors on both SDA/SCL lines to pull lines HIGH. Microchips communicate by pulling lines LOW to signal logic states.`
+        };
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages-container');
+            container.innerHTML = appState.chatState.messages.map((msg, idx) => {
+                const isUser = msg.role === 'user';
+                return `
+                    <div class="flex ${isUser ? 'justify-end animate-fade-in' : 'justify-start'}">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${
+                            isUser 
+                                ? 'bg-indigo-600 text-slate-100 font-medium rounded-br-none shadow-[0_0_15px_rgba(79,70,229,0.25)]' 
+                                : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none font-sans'
+                        }">
+                            ${isUser ? msg.text : formatBotMarkdown(msg.text)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Simple markdown formatter helper for chat bubbles
+        function formatBotMarkdown(text) {
+            let res = text
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<b class="text-indigo-300 font-bold">$1</b>')
+                .replace(/### (.*?)(<br>|$)/g, '<h4 class="text-xs sm:text-sm font-bold text-indigo-400 uppercase tracking-wider border-b border-slate-800 pb-1.5 mb-2">$1</h4>')
+                .replace(/\$\$(.*?)\$\$/g, '<div class="my-2 bg-slate-950 p-3 rounded-xl border border-slate-850 font-mono text-center text-indigo-300">$1</div>')
+                .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-indigo-300">$1</code>')
+                .replace(/-\s(.*?)(<br>|$)/g, '<div class="flex items-start gap-2 pl-2"><span class="text-indigo-400 mt-1">•</span><span>$1</span></div>');
+            return res;
+        }
+
+        function askQuickQuestion(intentKey) {
+            const questionText = {
+                'led-resistor': "How do I calculate the resistor value for an LED?",
+                'h-bridge': "Explain H-Bridge DC motor drive logic.",
+                'ultrasonic-math': "How does the ultrasonic radar calculate distance?",
+                'servo-pwm': "What PWM signal controls standard servo motor angles?",
+                'i2c': "What is the I2C protocol and how does it utilize SCL/SDA wires?"
+            }[intentKey];
+
+            // Add user message
+            appState.chatState.messages.push({ role: 'user', text: questionText });
+            renderChatMessages();
+
+            // Simulate tutor processing delay
+            const indicator = document.getElementById('typing-indicator');
+            indicator.classList.remove('hidden');
+
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+                const answer = INTENT_RESPONSES[intentKey];
+                appState.chatState.messages.push({ role: 'assistant', text: answer });
+                renderChatMessages();
+            }, 1000);
+        }
+
+        function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            appState.chatState.messages.push({ role: 'user', text: val });
+            input.value = '';
+            renderChatMessages();
+
+            const indicator = document.getElementById('typing-indicator');
+            indicator.classList.remove('hidden');
+
+            // Find matching intent from query
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+                let answer = "I have scanned my local ledger for those terms. Let's trace common robotic diagnostics:\n\n1. **Ground Loop Errors:** Ensure the Arduino Ground (GND) is shared with any external power modules (H-Bridges, Servos).\n2. **Serial Baud Rate mismatch:** Verify that your physical Serial Monitor baud rate matches `Serial.begin(9600)` exactly.\n3. **Syntax check:** Semicolons are mandatory at end-of-lines in C++.";
+                
+                const qLower = val.toLowerCase();
+                if (qLower.includes('resistor') || qLower.includes('ohm') || qLower.includes('led')) {
+                    answer = INTENT_RESPONSES['led-resistor'];
+                } else if (qLower.includes('motor') || qLower.includes('h-bridge') || qLower.includes('bridge') || qLower.includes('drive')) {
+                    answer = INTENT_RESPONSES['h-bridge'];
+                } else if (qLower.includes('distance') || qLower.includes('sonar') || qLower.includes('ultrasonic') || qLower.includes('echo')) {
+                    answer = INTENT_RESPONSES['ultrasonic-math'];
+                } else if (qLower.includes('servo') || qLower.includes('angle') || qLower.includes('pwm')) {
+                    answer = INTENT_RESPONSES['servo-pwm'];
+                } else if (qLower.includes('i2c') || qLower.includes('sda') || qLower.includes('bus') || qLower.includes('communication')) {
+                    answer = INTENT_RESPONSES['i2c'];
+                }
+
+                appState.chatState.messages.push({ role: 'assistant', text: answer });
+                renderChatMessages();
+            }, 1000);
+        }
+
+        function clearChatHistory() {
+            appState.chatState.messages = [
+                {
+                    role: 'assistant',
+                    text: "Conversation ledger wiped. Ask me any robotics hardware questions to begin a new debugging cycle."
+                }
+            ];
+            renderChatMessages();
+        }
+
+
+        // --- APPLICATION CONTEXT REBOOT ---
+        window.addEventListener('load', () => {
+            // Select first lesson by default
+            selectLesson('blink-led');
+            
+            // Build interactive deck selections
+            loadQuizCenter();
+
+            // Populate initial Chat Assistant welcome message
+            renderChatMessages();
+
+            // Setup default navigation tab state classes
+            switchTab('lessons');
+        });
+    </script>
+</body>
+</html>
